@@ -1,0 +1,298 @@
+# VD-Flow Configuration
+# Lightweight AI Agent Framework with Memory and Skills
+#
+# Guidelines:
+# - Copy this file to `config.yaml` and customize it for your environment
+# - Environment variables are available: api_key: $OPENAI_API_KEY
+# - The `use` path format: "package_name.module_name:ClassName"
+
+# ============================================================================
+# Models Configuration
+# ============================================================================
+# Configure available LLM models
+
+models:
+  # OpenAI Models
+  - name: gpt-4o-mini
+    display_name: GPT-4o Mini
+    use: langchain_openai:ChatOpenAI
+    model: gpt-4o-mini
+    api_key: $OPENAI_API_KEY
+    temperature: 0.7
+    max_tokens: 4096
+    supports_vision: true
+
+  # Anthropic Claude Models
+  - name: claude-3-5-sonnet
+    display_name: Claude 3.5 Sonnet
+    use: langchain_anthropic:ChatAnthropic
+    model: claude-3-5-sonnet-20241022
+    api_key: $ANTHROPIC_API_KEY
+    max_tokens: 8192
+    supports_vision: true
+
+  # JD Cloud Coding Plan Models (Unified API Key)
+  # Models supported: DeepSeek-V3.2, GLM-5, GLM-4.7, MiniMax-M2.5, Kimi-K2.5, Kimi-K2-Turbo, Qwen3-Coder
+  # All models use the same API key and base URL
+  - name: deepseek-v3.2-jd
+    display_name: DeepSeek V3.2 (JD Cloud)
+    use: langchain_openai:ChatOpenAI
+    model: DeepSeek-V3.2
+    api_key: $JDCODING_API_KEY
+    base_url: https://modelservice.jdcloud.com/coding/openai/v1
+    max_tokens: 8192
+    supports_thinking: true
+    when_thinking_enabled:
+      extra_body:
+        thinking:
+          type: enabled
+          budget_tokens: 8192
+    when_thinking_disabled:
+      extra_body:
+        thinking:
+          type: disabled
+
+  - name: glm-5-jd
+    display_name: GLM-5 (JD Cloud)
+    use: langchain_openai:ChatOpenAI
+    model: GLM-5
+    api_key: $JDCODING_API_KEY
+    base_url: https://modelservice.jdcloud.com/coding/openai/v1
+    max_tokens: 8192
+    supports_thinking: true
+    when_thinking_enabled:
+      extra_body:
+        thinking:
+          type: enabled
+          budget_tokens: 8192
+    when_thinking_disabled:
+      extra_body:
+        thinking:
+          type: disabled
+
+  - name: glm-4.7-jd
+    display_name: GLM-4.7 (JD Cloud)
+    use: langchain_openai:ChatOpenAI
+    model: GLM-4.7
+    api_key: $JDCODING_API_KEY
+    base_url: https://modelservice.jdcloud.com/coding/openai/v1
+    max_tokens: 8192
+    supports_thinking: true
+    when_thinking_enabled:
+      extra_body:
+        thinking:
+          type: enabled
+          budget_tokens: 8192
+    when_thinking_disabled:
+      extra_body:
+        thinking:
+          type: disabled
+
+  - name: minimax-m2.5-jd
+    display_name: MiniMax M2.5 (JD Cloud)
+    use: langchain_openai:ChatOpenAI
+    model: MiniMax-M2.5
+    api_key: $JDCODING_API_KEY
+    base_url: https://modelservice.jdcloud.com/coding/openai/v1
+    temperature: 1.0
+    max_tokens: 4096
+    supports_vision: true
+
+  - name: kimi-k2.5-jd
+    display_name: Kimi K2.5 (JD Cloud)
+    use: langchain_openai:ChatOpenAI
+    model: Kimi-K2.5
+    api_key: $JDCODING_API_KEY
+    base_url: https://modelservice.jdcloud.com/coding/openai/v1
+    max_tokens: 8192
+    supports_thinking: true
+    when_thinking_enabled:
+      extra_body:
+        thinking:
+          type: enabled
+          budget_tokens: 8192
+    when_thinking_disabled:
+      extra_body:
+        thinking:
+          type: disabled
+
+  - name: kimi-k2-turbo-jd
+    display_name: Kimi K2 Turbo (JD Cloud)
+    use: langchain_openai:ChatOpenAI
+    model: Kimi-K2-Turbo
+    api_key: $JDCODING_API_KEY
+    base_url: https://modelservice.jdcloud.com/coding/openai/v1
+    max_tokens: 8192
+
+  - name: qwen3-coder-jd
+    display_name: Qwen3 Coder (JD Cloud)
+    use: langchain_openai:ChatOpenAI
+    model: Qwen3-Coder
+    api_key: $JDCODING_API_KEY
+    base_url: https://modelservice.jdcloud.com/coding/openai/v1
+    max_tokens: 8192
+
+  # Local vLLM (OpenAI-compatible)
+  # - name: local-llm
+  #   display_name: Local LLM (vLLM)
+  #   use: langchain_openai:ChatOpenAI
+  #   model: your-model-name
+  #   api_key: dummy
+  #   base_url: http://localhost:8000/v1
+  #   max_tokens: 8192
+
+# ============================================================================
+# Memory Configuration
+# ============================================================================
+memory:
+  enabled: true
+  sqlite_path: data/agent.db
+  max_facts: 100
+  fact_confidence_threshold: 0.7
+  injection_enabled: true
+  max_injection_tokens: 2000
+  debounce_seconds: 30
+
+# ============================================================================
+# Skills Configuration
+# ============================================================================
+skills:
+  path: skills
+  public_path: skills/public
+  custom_path: skills/custom
+  container_path: /mnt/skills
+  enabled_by_default: true
+
+# ============================================================================
+# Lead Agent Prompt Configuration
+# ============================================================================
+lead_prompt:
+  enforce_clarification_first: true
+  encourage_skill_loading_for_complex_tasks: true
+  require_citations_for_web_results: true
+
+# ============================================================================
+# Middleware Configuration
+# ============================================================================
+middleware:
+  thread_data_enabled: true
+  file_upload_enabled: true
+  dangling_tool_call_enabled: true
+  llm_error_handling_enabled: true
+  tool_error_enabled: true
+  title_enabled: true
+  memory_enabled: true
+  token_usage_enabled: true
+  loop_detection_enabled: true
+  loop_detection_warn_threshold: 3
+  loop_detection_hard_limit: 5
+  loop_detection_window_size: 20
+  clarification_enabled: true
+
+# ============================================================================
+# Summarization Configuration (ported from DeerFlow)
+# ============================================================================
+# Automatically summarize conversation history when token limits are approached
+# This helps maintain context in long conversations without exceeding model limits
+summarization:
+  enabled: true
+
+  # Model to use for summarization (null = use the agent's current model)
+  model_name: null
+
+  # Trigger conditions — summarization runs when ANY threshold is met (OR logic)
+  trigger:
+    - type: tokens
+      value: 15564
+    # Uncomment to also trigger when message count reaches 50
+    # - type: messages
+    #   value: 50
+    # Uncomment to trigger when 80% of model's max input tokens is reached
+    # - type: fraction
+    #   value: 0.8
+
+  # Context retention policy after summarization
+  keep:
+    type: messages
+    value: 10
+
+  # Maximum tokens to keep when preparing messages for summarization
+  trim_tokens_to_summarize: 15564
+
+  # Custom summary prompt template (null = use default LangChain prompt)
+  summary_prompt: null
+
+# ============================================================================
+# Tools Configuration
+# ============================================================================
+tool_groups:
+  - name: web
+    enabled: true
+  - name: file
+    enabled: true
+  - name: bash
+    enabled: true
+
+# Built-in tools (simplified for MVP)
+tools:
+  - name: web_search
+    group: web
+    use: vdflow.tools.builtins:web_search_tool
+    max_results: 5
+
+  - name: web_fetch
+    group: web
+    use: vdflow.tools.builtins:web_fetch_tool
+
+  - name: read_file
+    group: file
+    use: vdflow.tools.builtins:read_file_tool
+
+  - name: write_file
+    group: file
+    use: vdflow.tools.builtins:write_file_tool
+
+  - name: bash
+    group: bash
+    use: vdflow.tools.builtins:bash_tool
+
+  - name: ask_clarification
+    use: vdflow.tools.builtins:ask_clarification_tool
+
+# ============================================================================
+# MCP Configuration
+# ============================================================================
+mcp:
+  enabled: true
+  servers: []
+
+# ============================================================================
+# Server Configuration
+# ============================================================================
+server:
+  host: "0.0.0.0"
+  port: 8000
+  debug: true
+  reload: true
+
+# ============================================================================
+# Thread Configuration
+# ============================================================================
+threads:
+  backend: sqlite
+  sqlite_path: data/agent.db
+  storage_path: data/threads
+  max_threads: 100
+
+# ============================================================================
+# Runtime
+# ============================================================================
+runtime:
+  allow_host_bash: true
+  agent_recursion_limit: 500
+  stream_heartbeat_seconds: 10
+
+# ============================================================================
+# Logging
+# ============================================================================
+log_level: info

@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python:*)",
+      "WebSearch",
+      "WebFetch(domain:www.minimaxi.com)",
+      "WebFetch(domain:platform.moonshot.cn)",
+      "WebFetch(domain:help.aliyun.com)",
+      "WebFetch(domain:platform.kimi.com)",
+      "WebFetch(domain:api-docs.deepseek.com)",
+      "WebFetch(domain:bigmodel.cn)",
+      "WebFetch(domain:docs.bigmodel.cn)",
+      "WebFetch(domain:platform.minimaxi.com)"
+    ]
+  }
+}
