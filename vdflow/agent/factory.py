@@ -92,9 +92,14 @@ def create_agent(
     subagent_enabled: bool = False,
     agent_name: str | None = None,
     agent_soul: str | None = None,
+    is_subagent: bool = False,
     **kwargs: Any,
 ) -> CompiledStateGraph:
-    """Create the single lead-agent runtime."""
+    """Create an agent runtime.
+
+    When ``is_subagent=True``, builds a slim middleware chain (safety only)
+    suitable for ephemeral subagent execution.
+    """
 
     model_config = resolve_model_config(config, model_name)
     model = create_chat_model(model_config, **(model_kwargs or {}))
@@ -108,17 +113,20 @@ def create_agent(
             agent_soul=agent_soul,
         )
 
-    memory_updater = None
-    if config.memory.enabled and memory_storage is not None:
-        memory_updater = MemoryUpdater(memory_storage, model)
-
-    middlewares = build_middlewares(
-        config,
-        model=model,
-        memory_storage=memory_storage,
-        memory_updater=memory_updater,
-        skills=skills,
-    )
+    if is_subagent:
+        from vdflow.agent.middlewares import build_subagent_middlewares
+        middlewares = build_subagent_middlewares(config)
+    else:
+        memory_updater = None
+        if config.memory.enabled and memory_storage is not None:
+            memory_updater = MemoryUpdater(memory_storage, model)
+        middlewares = build_middlewares(
+            config,
+            model=model,
+            memory_storage=memory_storage,
+            memory_updater=memory_updater,
+            skills=skills,
+        )
 
     agent = create_langchain_agent(
         model=model,
@@ -130,5 +138,9 @@ def create_agent(
         store=store,
         **kwargs,
     )
-    logger.info("Lead agent created successfully with model: %s", model_config.name)
+    logger.info(
+        "%s created successfully with model: %s",
+        "Subagent" if is_subagent else "Lead agent",
+        model_config.name,
+    )
     return agent

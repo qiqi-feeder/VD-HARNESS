@@ -76,18 +76,19 @@ class SubagentExecutor:
     # ------------------------------------------------------------------
 
     def _create_agent(self):
-        """Create a real LangGraph agent for this subagent."""
-        from langchain.agents import create_agent as create_langchain_agent
+        """Create a LangGraph agent for this subagent via the shared factory.
 
-        from vdflow.agent.factory import create_chat_model, resolve_model_config
-        from vdflow.agent.middlewares import build_subagent_middlewares
-        from vdflow.agent.state import ThreadState
+        Reuses ``vdflow.agent.factory.create_agent`` — the same path the
+        lead agent uses — but with subagent-specific overrides:
+          * subagent_enabled=False  → prevents recursive task tool injection
+          * no checkpointer/store  → subagents are ephemeral
+          * tool filtering         → apply per-config allow/disallow lists
+          * system_prompt override → use subagent-specific prompt
+        """
+        from vdflow.agent.factory import create_agent
         from vdflow.tools import get_available_tools
 
-        # Resolve model (inherit from parent or use own)
         model_name = self.config.model or self._parent_model_name
-        model_config = resolve_model_config(self._app_config, model_name)
-        model = create_chat_model(model_config)
 
         # Get tools — subagent_enabled=False prevents recursive task tool injection
         all_tools = get_available_tools(
@@ -101,19 +102,17 @@ class SubagentExecutor:
         else:
             tools = [t for t in all_tools if _tool_name(t) not in disallowed]
 
-        # Slim middleware chain (security + error handling only)
-        middlewares = build_subagent_middlewares(self._app_config)
-
-        agent = create_langchain_agent(
-            model=model,
+        agent = create_agent(
+            self._app_config,
+            model_name=model_name,
             tools=tools,
-            middleware=middlewares,
             system_prompt=self.config.system_prompt,
-            state_schema=ThreadState,
+            subagent_enabled=False,
+            is_subagent=True,
         )
         logger.info(
-            "[trace=%s] Created subagent '%s' with %d tools, %d middlewares",
-            self.trace_id, self.config.name, len(tools), len(middlewares),
+            "[trace=%s] Created subagent '%s' with %d tools",
+            self.trace_id, self.config.name, len(tools),
         )
         return agent
 
