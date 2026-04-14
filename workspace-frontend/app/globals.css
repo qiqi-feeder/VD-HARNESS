@@ -1,24 +1,31 @@
 @import "tailwindcss";
+@source "../components";
+@source "../core";
+@source "../hooks";
+@source "../lib";
 
 :root {
-  --background: #09090b;
+  --background: #050508;
   --background-strong: #000000;
-  --panel: rgba(28, 28, 35, 0.5);
-  --panel-strong: rgba(20, 20, 25, 0.7);
-  --panel-solid: #1c1c23;
-  --foreground: #f8fafc;
-  --muted: #94a3b8;
-  --accent: #e11d48;
-  --accent-soft: rgba(225, 29, 72, 0.15);
-  --accent-secondary: #2563eb;
-  --accent-secondary-soft: rgba(37, 99, 235, 0.15);
-  --accent-tertiary: #a855f7;
-  --accent-tertiary-soft: rgba(168, 85, 247, 0.15);
-  --line-strong: rgba(255, 255, 255, 0.12);
-  --line-soft: rgba(255, 255, 255, 0.06);
+  --panel: rgba(12, 15, 22, 0.6);
+  --panel-strong: rgba(8, 10, 16, 0.7);
+  --panel-solid: #0c0f16;
+  --foreground: #f0f4f8;
+  --muted: #8494a7;
+  --accent: #00d4ff;
+  --accent-soft: rgba(0, 212, 255, 0.12);
+  --accent-secondary: #a855f7;
+  --accent-secondary-soft: rgba(168, 85, 247, 0.12);
+  --accent-tertiary: #ff00ff;
+  --accent-tertiary-soft: rgba(255, 0, 255, 0.1);
+  --neon-cyan: #00d4ff;
+  --neon-purple: #a855f7;
+  --neon-magenta: #ff00ff;
+  --line-strong: rgba(0, 212, 255, 0.08);
+  --line-soft: rgba(0, 212, 255, 0.04);
   --danger: #ef4444;
-  --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.6);
+  --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.7);
 }
 
 @theme inline {
@@ -45,8 +52,8 @@ body {
   overflow-x: hidden;
   background-color: var(--background) !important;
   background-image: 
-    radial-gradient(circle at 15% 50%, rgba(225, 29, 72, 0.1), transparent 30%),
-    radial-gradient(circle at 85% 30%, rgba(37, 99, 235, 0.1), transparent 30%);
+    radial-gradient(circle at 15% 50%, rgba(0, 212, 255, 0.06), transparent 35%),
+    radial-gradient(circle at 85% 30%, rgba(168, 85, 247, 0.06), transparent 35%);
   color: var(--foreground) !important;
   font-family: var(--font-body), sans-serif;
 }
@@ -57,8 +64,8 @@ body::before {
   inset: -10%;
   z-index: -1;
   background:
-    radial-gradient(circle at 20% 80%, rgba(225, 29, 72, 0.05), transparent 40%),
-    radial-gradient(circle at 80% 20%, rgba(168, 85, 247, 0.05), transparent 40%);
+    radial-gradient(circle at 20% 80%, rgba(0, 212, 255, 0.03), transparent 40%),
+    radial-gradient(circle at 80% 20%, rgba(168, 85, 247, 0.04), transparent 40%);
   filter: blur(40px);
   pointer-events: none;
 }
@@ -95,9 +102,60 @@ a:focus-visible {
   position: relative;
 }
 
+/* Subtle tech grid overlay for workspace */
+.workspace-bg::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(0, 212, 255, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 212, 255, 0.015) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, black 20%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, black 20%, transparent 75%);
+}
+
+/* Embedded sidebar (flush, no float) */
+.sidebar-embedded {
+  background: linear-gradient(180deg, rgba(8, 12, 20, 0.8) 0%, rgba(5, 5, 8, 0.9) 100%);
+  border-right: 1px solid rgba(0, 212, 255, 0.06);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  position: relative;
+}
+
+.sidebar-embedded::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0, 212, 255, 0.012) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 212, 255, 0.012) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  mask-image: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, transparent 60%);
+  -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, transparent 60%);
+}
+
+/* Input glow effect */
+.input-glow {
+  box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.06), 0 0 20px rgba(0, 212, 255, 0.03);
+  transition: box-shadow 300ms ease;
+}
+.input-glow:focus-within {
+  box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.15), 0 0 30px rgba(0, 212, 255, 0.06);
+}
+
+/* Greeting glow text */
+.greeting-glow {
+  text-shadow: 0 0 40px rgba(0, 212, 255, 0.2), 0 0 80px rgba(168, 85, 247, 0.1);
+}
+
 .panel {
-  border: 1px solid var(--line-strong);
-  background: linear-gradient(135deg, rgba(30, 30, 38, 0.6), rgba(20, 20, 25, 0.6));
+  border: 1px solid rgba(0, 212, 255, 0.06);
+  background: linear-gradient(135deg, rgba(10, 14, 22, 0.7), rgba(5, 8, 14, 0.7));
   box-shadow: var(--shadow-soft);
   border-radius: 20px;
   backdrop-filter: blur(20px);
