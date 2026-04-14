@@ -1,6 +1,6 @@
 "use client";
 
-import { Bot, ChevronRight, MessageSquarePlus, MessagesSquare, Pencil, Settings2, Share2, Trash2 } from "lucide-react";
+import { ChevronRight, MessageSquarePlus, MessagesSquare, Pencil, Settings2, Share2, Trash2, Zap } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -9,6 +9,39 @@ import { toast } from "sonner";
 
 import { useDeleteThread, useRenameThread, useThreads } from "@/core/threads/hooks";
 import { cn, formatRelativeTime } from "@/lib/utils";
+
+/* Landing page 同款 SVG Logo */
+function VdFlowLogo({ size = 28 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 32 32"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M16 2L28.124 9V23L16 30L3.876 23V9L16 2Z"
+        stroke="url(#sidebar-logo-grad)"
+        strokeWidth="2"
+        fill="none"
+      />
+      <path
+        d="M11 12L16 8L21 12L16 20L11 12Z"
+        fill="url(#sidebar-logo-grad)"
+        opacity="0.8"
+      />
+      <circle cx="16" cy="14" r="2" fill="#050508" />
+      <defs>
+        <linearGradient id="sidebar-logo-grad" x1="4" y1="2" x2="28" y2="30" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#00ffff" />
+          <stop offset="0.5" stopColor="#a855f7" />
+          <stop offset="1" stopColor="#ff00ff" />
+        </linearGradient>
+      </defs>
+    </svg>
+  );
+}
 
 export function WorkspaceSidebar({
   open,
@@ -68,8 +101,8 @@ export function WorkspaceSidebar({
     >
       <div className="border-b border-[rgba(0,212,255,0.06)] px-4 py-5">
         <Link href="/" className={cn("flex items-center gap-3 group transition-colors", !open && "justify-center")}>
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] bg-[linear-gradient(135deg,#00bfff,#a855f7)] text-white shadow-[0_4px_16px_rgba(0,212,255,0.3)] transition group-hover:shadow-[0_4px_20px_rgba(0,212,255,0.5)]">
-            <Bot className="h-5 w-5" />
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center transition group-hover:drop-shadow-[0_0_8px_rgba(0,255,255,0.4)]">
+            <VdFlowLogo size={32} />
           </div>
           {open && (
             <div className="min-w-0 flex-1 opacity-100 transition-opacity duration-300">
@@ -98,7 +131,7 @@ export function WorkspaceSidebar({
             {open && <span>Chats</span>}
           </SidebarNavLink>
           <SidebarNavLink href="/workspace/agents" open={open} active={pathname.startsWith("/workspace/agents")}>
-            <Bot className="h-4 w-4" />
+            <Zap className="h-4 w-4" />
             {open && <span>Agents</span>}
           </SidebarNavLink>
         </nav>
