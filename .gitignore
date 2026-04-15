@@ -66,6 +66,8 @@ ai-art-gallery/
 design-system/
 /workspace/
 .gemini/
+/.codex/
+/.agent/
 
 # Local/internal docs
 /面试攻略_VD_HARNESS.md
