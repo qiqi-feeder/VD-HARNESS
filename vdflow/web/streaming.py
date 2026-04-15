@@ -4,6 +4,52 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from typing import Any
+import re
+
+# Memory keys that indicate a leaked memory extraction block
+_MEMORY_JSON_KEYS = {'"preferences"', '"facts"', '"summary"'}
+
+
+def strip_leaked_memory_json(text: str) -> str:
+    """Remove memory extraction JSON leaked by model at end of response.
+
+    Some models see <user_context> in the system prompt and spontaneously
+    output a memory JSON block (preferences/facts/summary) at the end of
+    their real answer. This strips it out.
+    """
+    if not text:
+        return text
+
+    # Quick check: only process if memory keys appear in the tail
+    if '"preferences"' not in text[-1500:] and '"facts"' not in text[-1500:]:
+        return text
+
+    # Look for a JSON object that starts with one of the memory keys.
+    # Typical patterns: {"preferences":  or { "preferences":
+    import re
+    # Match a '{' followed by optional whitespace then a memory key
+    m = re.search(
+        r'\{\s*"(?:preferences|facts|summary)"\s*:',
+        text[max(0, len(text) - 1500):],
+    )
+    if not m:
+        return text
+
+    # Calculate absolute position
+    offset = max(0, len(text) - 1500)
+    cut_pos = offset + m.start()
+
+    # Verify the block has at least 2 memory keys
+    candidate = text[cut_pos:]
+    key_count = sum(1 for k in _MEMORY_JSON_KEYS if k in candidate)
+    if key_count < 2:
+        return text
+
+    prefix = text[:cut_pos].rstrip()
+    # Also strip trailing markdown code fence markers
+    if prefix.endswith("```json") or prefix.endswith("```"):
+        prefix = prefix[: prefix.rfind("```")].rstrip()
+    return prefix
 
 THINK_LEVELS = {"fast", "normal", "thorough"}
 MODES = {"flash", "thinking", "pro", "ultra"}

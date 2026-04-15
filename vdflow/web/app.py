@@ -42,6 +42,7 @@ from vdflow.web.streaming import (
     extract_chunk_parts,
     normalize_think_level,
     resolve_mode_and_effort,
+    strip_leaked_memory_json,
 )
 
 logger = logging.getLogger(__name__)
@@ -651,6 +652,8 @@ def _extract_ui_message(raw_message: Any) -> dict[str, Any] | None:
             )
         )
         content = answer_text or content
+        # Strip leaked memory JSON from model output
+        content = strip_leaked_memory_json(content)
         thinking = thinking_text
         if not content and getattr(raw_message, "tool_calls", None):
             return None
@@ -1928,12 +1931,19 @@ async def chat_stream(request: ChatRequest):
             if thinking_open:
                 yield f"data: {json.dumps({'type': 'thinking_end'})}\n\n"
 
-            if not "".join(answer_parts).strip() and assistant_status == "completed":
+            # Strip leaked memory JSON from final answer
+            final_answer = strip_leaked_memory_json("".join(answer_parts))
+            if final_answer != "".join(answer_parts):
+                answer_parts.clear()
+                answer_parts.append(final_answer)
+
+            if not final_answer.strip() and assistant_status == "completed":
                 thread_state = await _load_thread_state(thread_id)
                 assistant_message = _latest_visible_message(thread_state.get("messages", []), role="assistant")
                 if assistant_message and assistant_message.get("content"):
-                    answer_parts.append(assistant_message["content"])
-                    yield f"data: {json.dumps({'type': 'content', 'text': assistant_message['content']})}\n\n"
+                    cleaned_content = strip_leaked_memory_json(assistant_message["content"])
+                    answer_parts.append(cleaned_content)
+                    yield f"data: {json.dumps({'type': 'content', 'text': cleaned_content})}\n\n"
 
             if assistant_status in {"interrupted", "error"}:
                 await manager.touch_thread(
