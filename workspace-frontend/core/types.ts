@@ -112,6 +112,8 @@ export interface SubtaskItem {
   status: "pending" | "running" | "completed" | "failed";
   output?: string;
   latestMessage?: string;
+  prompt?: string;
+  elapsedSeconds?: number;
 }
 
 export interface TokenUsage {
@@ -247,6 +249,7 @@ export type SSEEvent =
       task_id: string;
       description: string;
       subagent_type?: string;
+      prompt?: string;
     }
   | {
       type: "task_running";
@@ -255,7 +258,7 @@ export type SSEEvent =
       message_index?: number;
       total_messages?: number;
     }
-  | { type: "task_completed"; task_id: string; result?: string }
+  | { type: "task_completed"; task_id: string; result?: string; elapsed_seconds?: number }
   | { type: "task_failed"; task_id: string; error?: string }
   | { type: "task_timed_out"; task_id: string; error?: string }
   | { type: "task_cancelled"; task_id: string }

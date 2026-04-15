@@ -123,6 +123,7 @@ function processEvent(event: SSEEvent, state: StreamingState, setCurrentThreadId
           description: event.description,
           subagentType: event.subagent_type ?? "general",
           status: "running",
+          prompt: event.prompt,
         });
       }
       break;
@@ -140,6 +141,7 @@ function processEvent(event: SSEEvent, state: StreamingState, setCurrentThreadId
       if (task) {
         task.status = "completed";
         task.output = event.result;
+        task.elapsedSeconds = event.elapsed_seconds;
       }
       break;
     }

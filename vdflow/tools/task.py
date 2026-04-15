@@ -53,8 +53,11 @@ def _get_writer():
     """Get stream writer, returns a no-op if unavailable."""
     try:
         from langgraph.config import get_stream_writer
-        return get_stream_writer()
-    except Exception:
+        writer = get_stream_writer()
+        logger.info("Stream writer acquired successfully: %s", type(writer).__name__)
+        return writer
+    except Exception as e:
+        logger.warning("Stream writer unavailable (falling back to no-op): %s: %s", type(e).__name__, e)
         return lambda _data: None
 
 
@@ -115,6 +118,7 @@ async def task(description: str, prompt: str, subagent_type: str = "general") ->
         "task_id": task_id,
         "description": description,
         "subagent_type": subagent_type,
+        "prompt": prompt[:800],
     })
 
     # Poll for completion (backend-driven, no LLM polling needed)
@@ -162,6 +166,7 @@ async def task(description: str, prompt: str, subagent_type: str = "general") ->
                         "type": "task_completed",
                         "task_id": task_id,
                         "result": (result.output or "")[:500],
+                        "elapsed_seconds": round(result.elapsed_seconds, 1),
                     })
                     logger.info(
                         "[trace=%s] Task %s completed (%.1fs)",

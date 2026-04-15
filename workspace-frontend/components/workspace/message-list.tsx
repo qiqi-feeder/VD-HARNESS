@@ -7,6 +7,8 @@ import {
   Check,
   CheckCircle2,
   ChevronDown,
+  ChevronRight,
+  Clock,
   Copy,
   Cpu,
   File as FileIcon,
@@ -599,41 +601,10 @@ function ExecutionStepsBlock({ streaming }: { streaming: StreamingState }) {
             </div>
           ))}
 
-          {/* Subtask steps */}
-          {subtasks.map((task) => (
-            <div key={task.taskId} className="timeline-step fade-in-up pb-4">
-              <div className={cn(
-                "timeline-dot",
-                task.status === "running" ? "active" : task.status === "failed" ? "failed" : "done"
-              )} />
-              <div className="flex items-center gap-2 text-[13px] flex-wrap">
-                <GitBranch className="h-3.5 w-3.5 text-[var(--accent-tertiary)]" />
-                <span className="font-semibold text-white/90">{task.description}</span>
-                <span className="inline-flex items-center gap-1 rounded-full bg-[var(--accent-secondary)]/10 px-2 py-0.5 text-[10px] uppercase font-bold text-[var(--accent-secondary)] tracking-wider">
-                  {task.subagentType}
-                </span>
-                {task.status === "running" && (
-                  <Loader2 className="h-3 w-3 animate-spin text-[var(--accent-secondary)]" />
-                )}
-                {task.status === "failed" && (
-                  <XCircle className="h-3 w-3 text-[var(--danger)]" />
-                )}
-                {(task.status === "completed") && (
-                  <CheckCircle2 className="h-3 w-3 text-green-400/70" />
-                )}
-              </div>
-              {(task.latestMessage || task.output) ? (
-                <div className={cn(
-                  "mt-2 rounded-xl border px-3 py-2 text-[11px] leading-relaxed text-[var(--muted)] whitespace-pre-wrap font-mono max-h-32 overflow-y-auto",
-                  task.status === "running"
-                    ? "border-[var(--accent-secondary)]/10 bg-[var(--accent-secondary)]/[0.03]"
-                    : "border-white/[0.04] bg-black/20"
-                )}>
-                  {task.output || task.latestMessage}
-                </div>
-              ) : null}
-            </div>
-          ))}
+          {/* Subtask branch view */}
+          {subtasks.length > 0 && (
+            <SubagentBranchView subtasks={subtasks} />
+          )}
         </div>
       )}
     </div>
@@ -666,4 +637,152 @@ function TokenUsageStrip({ usage }: { usage: TokenUsage }) {
 
 function Badge({ children }: { children: React.ReactNode }) {
   return <span className="glass-badge rounded-full px-3 py-1.5">{children}</span>;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  SubagentBranchView — tree-style visualization of dispatched subagent tasks */
+/* -------------------------------------------------------------------------- */
+
+function SubagentBranchView({ subtasks }: { subtasks: SubtaskItem[] }) {
+  return (
+    <div className="fade-in-up mt-1 mb-2">
+      {/* Branch header */}
+      <div className="flex items-center gap-2 text-[12px] text-[var(--muted)] mb-3 pl-1">
+        <GitBranch className="h-3.5 w-3.5 text-[var(--accent-tertiary)]" />
+        <span className="font-medium">子任务分发</span>
+        <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--accent-tertiary)]/10 px-1.5 text-[10px] font-bold text-[var(--accent-tertiary)]">
+          {subtasks.length}
+        </span>
+      </div>
+
+      {/* Branch tree */}
+      <div className="relative pl-4">
+        {/* Vertical trunk line */}
+        <div className="absolute left-[7px] top-0 bottom-4 w-[1.5px] bg-gradient-to-b from-[var(--accent-tertiary)]/30 via-[var(--accent-tertiary)]/15 to-transparent" />
+
+        {subtasks.map((task, idx) => (
+          <SubagentBranchCard key={task.taskId} task={task} isLast={idx === subtasks.length - 1} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SubagentBranchCard({ task, isLast }: { task: SubtaskItem; isLast: boolean }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const statusColor = {
+    pending: "bg-white/20",
+    running: "bg-[var(--accent-secondary)] shadow-[0_0_6px_var(--accent-secondary)]",
+    completed: "bg-green-400",
+    failed: "bg-red-400",
+  }[task.status];
+
+  const statusIcon = {
+    pending: null,
+    running: <Loader2 className="h-3 w-3 animate-spin text-[var(--accent-secondary)]" />,
+    completed: <CheckCircle2 className="h-3 w-3 text-green-400/80" />,
+    failed: <XCircle className="h-3 w-3 text-red-400/80" />,
+  }[task.status];
+
+  const hasDetails = !!(task.prompt || task.output || task.latestMessage);
+
+  return (
+    <div className={cn("relative pl-5 pb-3", isLast && "pb-1")}>
+      {/* Horizontal branch connector */}
+      <div className="absolute left-[7px] top-[11px] w-3.5 h-[1.5px] bg-[var(--accent-tertiary)]/25" />
+      {/* Node dot */}
+      <div className={cn(
+        "absolute left-[4px] top-[8px] h-[7px] w-[7px] rounded-full border border-black/40 transition-all duration-300",
+        statusColor
+      )} />
+
+      {/* Card */}
+      <div className={cn(
+        "rounded-xl border transition-all duration-200",
+        task.status === "running"
+          ? "border-[var(--accent-secondary)]/20 bg-[var(--accent-secondary)]/[0.04]"
+          : task.status === "failed"
+            ? "border-red-400/15 bg-red-400/[0.03]"
+            : "border-white/[0.06] bg-white/[0.02]",
+        hasDetails && "cursor-pointer hover:bg-white/[0.04]"
+      )}
+        onClick={() => hasDetails && setIsExpanded(!isExpanded)}
+      >
+        {/* Card header */}
+        <div className="flex items-center gap-2 px-3 py-2">
+          {hasDetails && (
+            <ChevronRight className={cn(
+              "h-3 w-3 text-[var(--muted)] transition-transform duration-200 flex-shrink-0",
+              isExpanded && "rotate-90"
+            )} />
+          )}
+          <span className="font-semibold text-[12px] text-white/90 truncate">{task.description}</span>
+          <span className="inline-flex items-center gap-1 rounded-full bg-[var(--accent-tertiary)]/10 px-1.5 py-0.5 text-[9px] uppercase font-bold text-[var(--accent-tertiary)]/80 tracking-wider flex-shrink-0">
+            {task.subagentType}
+          </span>
+          <span className="ml-auto flex items-center gap-1.5 flex-shrink-0">
+            {task.elapsedSeconds != null && (
+              <span className="flex items-center gap-0.5 text-[10px] text-[var(--muted)]">
+                <Clock className="h-2.5 w-2.5" />
+                {task.elapsedSeconds}s
+              </span>
+            )}
+            {statusIcon}
+          </span>
+        </div>
+
+        {/* Running message preview (always visible when running) */}
+        {task.status === "running" && task.latestMessage && !isExpanded && (
+          <div className="px-3 pb-2 -mt-0.5">
+            <div className="text-[10px] text-[var(--muted)] truncate font-mono">
+              💬 {task.latestMessage.slice(0, 120)}
+            </div>
+          </div>
+        )}
+
+        {/* Expanded details */}
+        {isExpanded && (
+          <div className="px-3 pb-3 space-y-2 border-t border-white/[0.04] mt-0.5 pt-2 slide-down-enter">
+            {/* Prompt section */}
+            {task.prompt && (
+              <div>
+                <div className="text-[9px] uppercase tracking-wider text-[var(--accent-secondary)]/60 font-bold mb-1">提示词</div>
+                <div className="rounded-lg bg-black/20 border border-white/[0.04] px-2.5 py-2 text-[10px] leading-relaxed text-[var(--muted)] whitespace-pre-wrap font-mono max-h-28 overflow-y-auto">
+                  {task.prompt}
+                </div>
+              </div>
+            )}
+
+            {/* Latest message (when running) */}
+            {task.latestMessage && (
+              <div>
+                <div className="text-[9px] uppercase tracking-wider text-[var(--accent-secondary)]/60 font-bold mb-1">实时进度</div>
+                <div className="rounded-lg bg-[var(--accent-secondary)]/[0.04] border border-[var(--accent-secondary)]/10 px-2.5 py-2 text-[10px] leading-relaxed text-[var(--muted)] whitespace-pre-wrap font-mono max-h-28 overflow-y-auto">
+                  {task.latestMessage}
+                </div>
+              </div>
+            )}
+
+            {/* Output (when completed/failed) */}
+            {task.output && (
+              <div>
+                <div className="text-[9px] uppercase tracking-wider text-green-400/50 font-bold mb-1">
+                  {task.status === "failed" ? "错误信息" : "执行结果"}
+                </div>
+                <div className={cn(
+                  "rounded-lg border px-2.5 py-2 text-[10px] leading-relaxed text-[var(--muted)] whitespace-pre-wrap font-mono max-h-40 overflow-y-auto",
+                  task.status === "failed"
+                    ? "bg-red-400/[0.04] border-red-400/10"
+                    : "bg-black/20 border-white/[0.04]"
+                )}>
+                  {task.output}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }

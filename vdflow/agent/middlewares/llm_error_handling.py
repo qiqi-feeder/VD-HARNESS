@@ -321,6 +321,11 @@ class LLMErrorHandlingMiddleware(AgentMiddleware[AgentState]):
             except Exception as exc:
                 if _is_graph_bubble_up(exc):
                     raise
+                # Debug: dump message structure on error
+                logger.warning(
+                    "LLM call error — message structure: %s",
+                    [(getattr(m, 'type', '?'), bool(getattr(m, 'tool_calls', None))) for m in request.messages],
+                )
                 retriable, reason = self._classify_error(exc)
                 if retriable and attempt < self.retry_max_attempts:
                     wait_ms = self._build_retry_delay_ms(attempt, exc)

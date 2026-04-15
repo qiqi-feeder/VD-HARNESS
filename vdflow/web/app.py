@@ -749,7 +749,7 @@ async def _stream_agent_events(
     from langchain_core.messages import HumanMessage
 
     try:
-        async for event in active_agent.astream_events(
+        async for mode, chunk in active_agent.astream(
             {
                 "messages": [
                     HumanMessage(
@@ -759,9 +759,13 @@ async def _stream_agent_events(
                 ]
             },
             config=_build_agent_run_config(thread_id),
-            version="v2",
+            stream_mode=["events", "custom"],
         ):
-            await queue.put(("event", event))
+            if mode == "events":
+                await queue.put(("event", chunk))
+            elif mode == "custom":
+                # Wrap custom data as an on_custom_event for uniform handling
+                await queue.put(("event", {"event": "on_custom_event", "data": chunk}))
     except Exception as exc:
         await queue.put(("error", exc))
     finally:
@@ -1073,11 +1077,19 @@ async def _run_agent_for_record(record: dict[str, Any]) -> None:
         if uploaded_files:
             graph_input["uploaded_files"] = uploaded_files
 
-        async for event in active_agent.astream_events(
+        async for stream_mode, chunk in active_agent.astream(
             graph_input,
             config=_build_agent_run_config(thread_id),
-            version="v2",
+            stream_mode=["events", "custom"],
         ):
+            if stream_mode == "custom":
+                # Custom events from get_stream_writer() — publish directly
+                if isinstance(chunk, dict):
+                    await _publish_run_event(record, "custom", chunk)
+                continue
+
+            # stream_mode == "events" — same format as astream_events v2
+            event = chunk
             kind = event.get("event", "")
             await _publish_run_event(record, "events", event)
             if kind == "on_tool_start":
@@ -1102,10 +1114,6 @@ async def _run_agent_for_record(record: dict[str, Any]) -> None:
                         "output": event.get("data", {}).get("output"),
                     },
                 )
-            elif kind == "on_custom_event":
-                custom_data = event.get("data", {})
-                if isinstance(custom_data, dict):
-                    await _publish_run_event(record, "custom", custom_data)
 
         values = await _thread_state_values(thread_id)
         await _publish_run_event(record, "values", values)

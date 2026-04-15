@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/images/landing-hero.png" alt="VD-HARNESS Landing Page" width="100%">
+  <img src="docs/images/landing-hero.png" alt="VD-HARNESS hero" width="100%">
 </p>
 
 <h1 align="center">VD-HARNESS</h1>
@@ -16,65 +16,92 @@
 
 <a id="english"></a>
 
-## 🌐 English
+## English
 
 ### What is VD-HARNESS?
 
-VD-HARNESS is an open-source **SuperAgent framework** that researches, codes, and creates. With the help of **sandboxes**, **memories**, **tools**, **skills** and **subagents**, it handles different levels of tasks that could take minutes to hours.
+VD-HARNESS is an open-source SuperAgent harness for long-running knowledge work: research, coding, planning, execution, and artifact delivery in one continuous loop.
 
-Built on top of LangGraph, VD-HARNESS provides a complete agent runtime with intelligent middleware, parallel subagent orchestration, and a stunning Next.js-based workspace UI.
+It combines sandboxed execution, persistent memory, tools, skills, and parallel subagents behind a LangGraph-based runtime, then exposes that runtime through a modern Next.js workspace.
 
-<p align="center">
-  <img src="docs/images/landing-features.png" alt="Core Features" width="100%">
-</p>
-
-### ✨ Key Features
-
-| Feature | Description |
-|---------|-------------|
-| **🔀 Subagent Parallelism** | Spawn specialized subagents that work in parallel — research, code, and create simultaneously |
-| **🛡️ Sandbox Protection** | Every execution runs in thread-isolated sandboxes with secure file isolation |
-| **🧠 Persistent Memory** | Cross-session memory with automatic context extraction and injection |
-| **⚡ Skill System** | Extensible skills defined via Markdown — from UI/UX design to code review |
-| **🛠️ 15+ Built-in Tools** | File I/O, shell commands, browser automation, web search, code analysis |
-| **🔗 Multi-Model Support** | OpenAI, Claude, Gemini, DeepSeek, JD Cloud Coding Plan and more |
-| **🎛️ Intelligent Middleware** | Context compression, loop detection, guardrails, task management |
-| **🖥️ Premium Workspace UI** | Dark glassmorphism design with real-time streaming and artifact management |
+> Current naming status: the product brand is `VD-HARNESS`, while some internal package names and directories still use `vdflow`. This README follows the external brand and only mentions `vdflow` where implementation details matter.
 
 <p align="center">
-  <img src="docs/images/workspace-chat.png" alt="Workspace Chat UI" width="100%">
+  <img src="docs/images/landing-features.png" alt="VD-HARNESS core capabilities" width="100%">
 </p>
 
-### 🚀 Quick Start
+### Key Capabilities
 
-#### Prerequisites
+| Capability | What it means |
+|------------|---------------|
+| Parallel Subagents | Delegate work to specialized subagents and stream their progress back into the lead conversation |
+| Sandboxed Execution | Isolated per-thread workspace, uploads, and outputs boundaries for safer tool use |
+| Persistent Memory | Store and re-inject useful context across sessions |
+| Skills System | Load reusable Markdown-defined capabilities into the agent at runtime |
+| Tool Runtime | Built-in web, file, bash, browser, and task-oriented tools with runtime controls |
+| Workspace UI | Landing page, chat workspace, execution timeline, artifacts drawer, todos, thread search, and settings |
+| Agent Profiles | Create and reuse custom agents backed by `agents/<name>/config.yaml` and `SOUL.md` |
+| Middleware Guardrails | Clarification-first prompting, context compression, loop detection, title generation, and LLM error handling |
+
+<p align="center">
+  <img src="docs/images/image.png" alt="VD-HARNESS execution steps and subtask progress" width="100%">
+</p>
+
+### Workspace Experience
+
+The current workspace is built around real agent execution rather than a static demo shell. It already exposes:
+
+- Streaming chat with thinking, tool, and subtask updates
+- Execution steps with expandable subtask cards and runtime status
+- Artifact browsing and download from thread outputs
+- Todo tracking for long-running tasks
+- Thread management with rename, delete, search, and share
+- Agent selection, creation, and profile editing in the workspace
+
+<p align="center">
+  <img src="docs/images/image copy.png" alt="VD-HARNESS workspace overview" width="100%">
+</p>
+
+### Quick Start
+
+#### Requirements
 
 - Python 3.10+
 - Node.js 18+
-- At least one LLM API key
+- At least one model API key
 
-#### 1. Clone & Install
+#### 1. Clone and install
 
 ```bash
 git clone https://github.com/qiqi-feeder/VD-HARNESS.git
 cd VD-HARNESS
 
-# Backend
 pip install -r requirements.txt
 
-# Frontend
 cd workspace-frontend
 npm install
+cd ..
 ```
 
-#### 2. Configure
+#### 2. Configure environment
+
+Backend:
 
 ```bash
 cp .env.example .env
-# Edit .env and add your API keys
 ```
 
-Edit `config.yaml` to configure your models:
+Frontend:
+
+```bash
+cp workspace-frontend/.env.example workspace-frontend/.env.local
+```
+
+Then edit `.env` and add at least one valid API key. The default frontend API target is `http://127.0.0.1:8000`.
+
+#### 3. Configure models
+
+`config.yaml` is the source of truth for available models. A minimal JD Cloud example:
 
 ```yaml
 models:
@@ -87,123 +114,139 @@ models:
     max_tokens: 8192
 ```
 
-#### 3. Run
+#### 4. Run
 
 ```bash
-# Terminal 1 — Backend (LangGraph API server)
+# Terminal 1: backend
 python run.py
 
-# Terminal 2 — Frontend
+# Terminal 2: frontend
 cd workspace-frontend
 npm run dev
 ```
 
-Open http://localhost:3000 to see the landing page, click **"Getting Started with vd-flow"** to enter the workspace.
+Open `http://localhost:3000`. The landing page routes into the workspace at `/workspace/chats/new`.
 
-### 📁 Project Structure
+### Project Structure
 
-```
+```text
 VD-HARNESS/
-├── vdflow/                    # Core Python package
-│   ├── agent/                 # Agent implementation
-│   │   ├── factory.py         # Agent factory with middleware pipeline
-│   │   ├── state.py           # LangGraph state definitions
-│   │   └── middlewares/       # Guardrails, compression, loop detection
-│   ├── subagents/             # Parallel subagent system
-│   ├── memory/                # Persistent memory (SQLite)
-│   ├── skills/                # Skill loader & injection
-│   ├── tools/                 # Built-in tool implementations
-│   ├── config/                # YAML-based configuration
-│   └── web/                   # FastAPI + LangGraph API server
-├── workspace-frontend/        # Next.js 16 workspace UI
-│   ├── app/                   # App router pages
-│   ├── components/            # React components
-│   │   ├── landing/           # Immersive landing page
-│   │   └── workspace/         # Chat, sidebar, settings
-│   └── core/                  # API clients & hooks
-├── agents/                    # Agent profiles (SOUL.md + config.yaml)
-├── skills/                    # Skill definitions (Markdown)
-├── config.yaml                # Main configuration
-└── run.py                     # Entry point
+├── vdflow/                 # Core Python runtime package (internal name kept for now)
+│   ├── agent/              # Lead agent, prompts, state, middleware
+│   ├── subagents/          # Parallel subagent execution
+│   ├── memory/             # Persistent memory
+│   ├── tools/              # Built-in tools and task dispatch
+│   ├── skills/             # Skill loading and injection
+│   └── web/                # FastAPI app and streaming endpoints
+├── workspace-frontend/     # Next.js workspace and landing UI
+├── agents/                 # Custom agent profiles
+├── skills/                 # Public and custom skills
+├── docs/images/            # README screenshots
+├── config.yaml             # Runtime configuration
+└── run.py                  # Local startup entry
 ```
 
-### 🔧 Supported Models
+### Supported Model Providers
 
-| Provider | Models | Config Key |
-|----------|--------|------------|
-| OpenAI | GPT-4o, GPT-4o-mini | `$OPENAI_API_KEY` |
-| Anthropic | Claude 3.5/4 | `$ANTHROPIC_API_KEY` |
-| Google | Gemini 2.0 Flash | `$GOOGLE_API_KEY` |
-| DeepSeek | DeepSeek-V3.2+  | `$DEEPSEEK_API_KEY` |
-| JD Cloud | DeepSeek, GLM-5, Kimi-K2.5, Qwen3-Coder | `$JDCODING_API_KEY` |
+The checked-in `config.yaml` currently includes these providers or endpoints:
+
+| Provider | Example models | Key |
+|----------|----------------|-----|
+| OpenAI | GPT-4o Mini | `$OPENAI_API_KEY` |
+| Anthropic | Claude 3.5 Sonnet | `$ANTHROPIC_API_KEY` |
+| JD Cloud Coding Plan | DeepSeek V3.2, GLM-5, GLM-4.7, MiniMax M2.5, Kimi K2.5, Kimi K2 Turbo, Qwen3-Coder | `$JDCODING_API_KEY` |
+| Local OpenAI-compatible endpoint | vLLM-style deployment | custom `api_key` / `base_url` |
 
 <p align="center">
-  <img src="docs/images/landing-footer.png" alt="Architecture Overview" width="100%">
+  <img src="docs/images/landing-footer.png" alt="VD-HARNESS closing CTA" width="100%">
 </p>
 
-### 📝 License
+### License
 
-MIT License
+MIT
 
-### 🙏 Acknowledgements
+### Acknowledgements
 
-Inspired by [DeerFlow](https://github.com/bytedance/deer-flow) by ByteDance. Rebuilt from the ground up with a focus on simplicity, extensibility, and developer experience.
+Inspired by [DeerFlow](https://github.com/bytedance/deer-flow). VD-HARNESS takes the general agent-runtime direction seriously, but is being shaped into its own sandboxed, workspace-first product.
 
 ---
 
 <a id="中文"></a>
 
-## 🇨🇳 中文
+## 中文
 
 ### 什么是 VD-HARNESS？
 
-VD-HARNESS 是一个开源的 **SuperAgent 框架**，能够自主研究、编程和创造。借助**沙箱**、**记忆**、**工具**、**技能**和**子智能体**，它可以处理从几分钟到几小时不等的不同层次任务。
+VD-HARNESS 是一个开源的 SuperAgent harness，面向长链路知识工作：调研、编码、规划、执行和产物交付可以在同一条连续流程里完成。
 
-基于 LangGraph 构建，VD-HARNESS 提供完整的 Agent 运行时，包含智能中间件、并行子智能体编排，以及精美的 Next.js 工作区界面。
+它把沙箱执行、持久记忆、工具、技能和并行子智能体组合在一个基于 LangGraph 的运行时里，再通过一个现代化的 Next.js Workspace 暴露出来。
 
-### ✨ 核心特性
+> 当前命名状态：对外产品名已经统一为 `VD-HARNESS`，但部分内部包名和目录名仍然保留 `vdflow`。本 README 按品牌名书写，只在实现细节必须说明时提到 `vdflow`。
 
-| 特性 | 描述 |
+### 核心能力
+
+| 能力 | 含义 |
 |------|------|
-| **🔀 子智能体并行** | 生成专用子智能体并行工作 — 同时研究、编码、创造 |
-| **🛡️ 沙箱保护** | 每次执行都在线程隔离的沙箱中运行，确保文件安全隔离 |
-| **🧠 持久记忆** | 跨会话记忆，自动提取和注入上下文信息 |
-| **⚡ 技能系统** | 通过 Markdown 文件定义可扩展技能 — 从 UI/UX 设计到代码审查 |
-| **🛠️ 15+ 内置工具** | 文件读写、Shell 命令、浏览器自动化、网页搜索、代码分析 |
-| **🔗 多模型支持** | OpenAI、Claude、Gemini、DeepSeek、京东云 Coding Plan 等 |
-| **🎛️ 智能中间件** | 上下文压缩、循环检测、安全护栏、任务管理 |
-| **🖥️ 精美工作区 UI** | 暗色玻璃拟态设计，实时流式输出与产物管理 |
+| 并行子智能体 | 把任务分发给专用子智能体，并把执行进度实时回流到主对话 |
+| 沙箱隔离 | 按线程隔离 `workspace / uploads / outputs`，降低工具执行串扰 |
+| 持久记忆 | 跨会话存储并回注高价值上下文 |
+| 技能系统 | 运行时加载 Markdown 定义的可复用能力 |
+| 工具运行时 | 内置 web、file、bash、browser、task 等工具，并支持运行时开关 |
+| Workspace UI | 已落地 landing、聊天工作台、执行步骤、产物抽屉、todo、线程搜索和设置 |
+| Agent Profiles | 支持创建和复用自定义 Agent，落盘为 `agents/<name>/config.yaml` 与 `SOUL.md` |
+| 中间件护栏 | 包含先澄清后执行、上下文压缩、循环检测、标题生成和 LLM 错误处理 |
 
-### 🚀 快速开始
+### 当前工作台体验
+
+现在的 Workspace 已经不是静态聊天壳，而是围绕真实 Agent 执行构建，当前可见能力包括：
+
+- 流式聊天，支持 thinking、tool、subtask 过程展示
+- 执行步骤时间线，支持展开子任务卡片和查看运行状态
+- 从线程产物中浏览和下载 artifact
+- 面向长任务的 todo 跟踪
+- 线程的重命名、删除、搜索与分享
+- 在工作台内选择、创建和编辑 Agent Profile
+
+### 快速开始
 
 #### 环境要求
 
 - Python 3.10+
 - Node.js 18+
-- 至少一个 LLM API 密钥
+- 至少一个可用模型的 API Key
 
-#### 1. 克隆与安装
+#### 1. 克隆并安装
 
 ```bash
 git clone https://github.com/qiqi-feeder/VD-HARNESS.git
 cd VD-HARNESS
 
-# 后端
 pip install -r requirements.txt
 
-# 前端
 cd workspace-frontend
 npm install
+cd ..
 ```
 
-#### 2. 配置
+#### 2. 配置环境变量
+
+后端：
 
 ```bash
 cp .env.example .env
-# 编辑 .env 添加你的 API 密钥
 ```
 
-编辑 `config.yaml` 配置模型：
+前端：
+
+```bash
+cp workspace-frontend/.env.example workspace-frontend/.env.local
+```
+
+然后编辑 `.env`，至少填入一个有效模型密钥。前端默认请求后端 `http://127.0.0.1:8000`。
+
+#### 3. 配置模型
+
+可用模型以 `config.yaml` 为准。一个最小的京东云示例：
 
 ```yaml
 models:
@@ -216,51 +259,53 @@ models:
     max_tokens: 8192
 ```
 
-#### 3. 运行
+#### 4. 启动
 
 ```bash
-# 终端 1 — 后端 (LangGraph API 服务器)
+# 终端 1：后端
 python run.py
 
-# 终端 2 — 前端
+# 终端 2：前端
 cd workspace-frontend
 npm run dev
 ```
 
-打开 http://localhost:3000 查看落地页，点击 **"Getting Started with vd-flow"** 进入工作区。
+打开 `http://localhost:3000`。落地页会引导进入 `/workspace/chats/new`。
 
-### 🔧 支持的模型
+### 项目结构
 
-| 提供商 | 模型 | 配置密钥 |
-|--------|------|----------|
-| OpenAI | GPT-4o, GPT-4o-mini | `$OPENAI_API_KEY` |
-| Anthropic | Claude 3.5/4 | `$ANTHROPIC_API_KEY` |
-| Google | Gemini 2.0 Flash | `$GOOGLE_API_KEY` |
-| DeepSeek | DeepSeek-V3.2+ | `$DEEPSEEK_API_KEY` |
-| 京东云 | DeepSeek, GLM-5, Kimi-K2.5, Qwen3-Coder | `$JDCODING_API_KEY` |
-
-### 📝 添加自定义技能
-
-在 `skills/custom/` 下创建目录和 `SKILL.md`：
-
-```markdown
----
-name: my-skill
-description: A custom skill for specific tasks
-enabled: true
----
-
-# My Custom Skill
-
-Instructions for the agent to follow when using this skill.
+```text
+VD-HARNESS/
+├── vdflow/                 # 当前仍沿用的核心 Python 包名
+│   ├── agent/              # Lead agent、prompt、state、middleware
+│   ├── subagents/          # 并行子智能体执行
+│   ├── memory/             # 持久记忆
+│   ├── tools/              # 内置工具与任务派发
+│   ├── skills/             # 技能加载与注入
+│   └── web/                # FastAPI 应用与流式接口
+├── workspace-frontend/     # Next.js 工作台与落地页
+├── agents/                 # 自定义 Agent Profiles
+├── skills/                 # 公共与自定义技能
+├── docs/images/            # README 截图资源
+├── config.yaml             # 运行时配置
+└── run.py                  # 本地启动入口
 ```
 
-重启服务后技能自动加载并注入到 Agent 系统提示中。
+### 当前支持的模型提供方
 
-### 📄 许可证
+以仓库内的 `config.yaml` 为准，当前已经配置了这些提供方或端点：
 
-MIT License
+| 提供方 | 示例模型 | 密钥 |
+|--------|----------|------|
+| OpenAI | GPT-4o Mini | `$OPENAI_API_KEY` |
+| Anthropic | Claude 3.5 Sonnet | `$ANTHROPIC_API_KEY` |
+| 京东云 Coding Plan | DeepSeek V3.2、GLM-5、GLM-4.7、MiniMax M2.5、Kimi K2.5、Kimi K2 Turbo、Qwen3-Coder | `$JDCODING_API_KEY` |
+| 本地 OpenAI 兼容端点 | vLLM 一类本地部署 | 自定义 `api_key` / `base_url` |
 
-### 🙏 致谢
+### 许可证
 
-受 [DeerFlow](https://github.com/bytedance/deer-flow)（ByteDance）启发，从零重构，专注于简洁性、可扩展性和开发者体验。
+MIT
+
+### 致谢
+
+项目方向受 [DeerFlow](https://github.com/bytedance/deer-flow) 启发，但 VD-HARNESS 的目标不是做一个换皮版本，而是做成一个以沙箱执行和 Workspace 体验为核心的通用 Agent 产品。
