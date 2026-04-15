@@ -66,3 +66,15 @@ ai-art-gallery/
 design-system/
 /workspace/
 .gemini/
+
+# Local/internal docs
+/面试攻略_VD_HARNESS.md
+/CLAUDE.md
+/DEERFLOW_STYLE_ARCHITECTURE_IMPROVEMENTS.md
+/MVP_AGENT_IMPLEMENTATION_PLAN.md
+/MVP_GENERAL_ASSISTANT_EXECUTION_TEMPLATE.md
+/PROJECT_OVERVIEW.md
+/QUICKSTART.md
+/docs/deer-flow-frontend-gap-analysis.md
+/docs/jd-cloud-thinking-support.md
+/workspace-frontend/CLAUDE.md
